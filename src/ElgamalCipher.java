@@ -3,6 +3,7 @@ import java.util.Scanner;
 /*Класс шифрования и дешифрования по схеме Эль-Гамаля*/
 public class ElgamalCipher extends ElgamalKeys {
     private static BigInteger[] cipherCode;
+    private static BigInteger[] openTextCode;
 
     /**
      * Главный метод запуска алгоритма шифрования/дешифрования,
@@ -41,17 +42,18 @@ public class ElgamalCipher extends ElgamalKeys {
     /**
      * Метод шифрования по схеме Эль-Гамаля.
      * Шифрует каждый элемент массива кодов cipherCode, изменяя их
-     * по формуле cipherCode[i] = cipherCode[i] * y^k mod(p) <=> δ = m * y^k mod(p),
-     * полученный результат перезаписывается в массив и является в нашем случае δ.
+     * по формуле cipherCode[i] = openTextCode[i] * y^k mod(p) <=> δ = m * y^k mod(p),
+     * полученный результат записывается в массив cipherCode и является в нашем случае δ.
      * Метод выводит результат на экран.
      */
     private static void encryptText() {
         Scanner sc = new Scanner(System.in);
         StringBuilder sb = new StringBuilder();
         String openText = sc.nextLine();
-        cipherCode = openText.codePoints().mapToObj(BigInteger::valueOf).toArray(BigInteger[]::new);
+        openTextCode = openText.codePoints().mapToObj(BigInteger::valueOf).toArray(BigInteger[]::new);
+        cipherCode = new BigInteger[openTextCode.length];
         for (int i = 0; i < cipherCode.length; i++) {
-            cipherCode[i] = cipherCode[i].multiply(y.modPow(k, p));
+            cipherCode[i] = openTextCode[i].multiply(y.modPow(k, p));
         }
         System.out.print("Ваша зашифрованная строка в виде кода:\n");
         for (BigInteger code : cipherCode) {
@@ -64,8 +66,8 @@ public class ElgamalCipher extends ElgamalKeys {
      * Метод дешифрования по схеме Эль-Гамаля.
      * Вычисляет значение γ по формуле γ = a^k mod(p) и записывает результат в переменную g
      * Дешифрует каждый элемент массива зашифрованных кодов cipherCode, изменяя их по формуле
-     * cipherCode[i] = (cipherCode[i] * g^(p - 1 - x)) mod(p) <=> m = γ^(p - 1 -x) mod(p),
-     * полученный результат перезаписывается в массив и является в нашем случае m.
+     * openTextCode[i] = (cipherCode[i] * g^(p - 1 - x)) mod(p) <=> m = δ * γ^(p - 1 -x) mod(p),
+     * полученный результат перезаписывается в массив openTextCode и является в нашем случае m.
      * Метод выводит результат на экран.
      */
     private static void decryptText() {
@@ -79,10 +81,10 @@ public class ElgamalCipher extends ElgamalKeys {
         }
         BigInteger g = a.modPow(k, p);
         for (int i = 0; i < cipherCode.length; i++) {
-            cipherCode[i] = cipherCode[i].multiply(g.pow(p.subtract(BigInteger.valueOf(1)).subtract(x).intValue())).mod(p);
+            openTextCode[i] = cipherCode[i].multiply(g.pow(p.subtract(BigInteger.valueOf(1)).subtract(x).intValue())).mod(p);
         }
         System.out.println("Расшифрованная строка:");
-        for (BigInteger bi : cipherCode) {
+        for (BigInteger bi : openTextCode) {
             System.out.print((char) bi.intValue());
         }
         System.out.println();
